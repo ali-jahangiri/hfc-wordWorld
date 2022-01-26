@@ -17,15 +17,15 @@ const TextEditorProvider = ({ children }) => {
 
 	useLayoutEffect(() => {
 		document.addEventListener("mouseup" , e => {
-			handlersRef.current?.mouseUpHandler(e)
+			handlersRef.current?.mouseUpHandler?.(e)
 		});
 
 		document.addEventListener("keyup" , e => {
-			handlersRef.current?.keyUpHandler(e);
+			handlersRef.current?.keyUpHandler?.(e);
 		});
 
 		document.addEventListener("selectionchange" , e => {
-			handlersRef.current?.selectionHandler(e);
+			handlersRef.current?.selectionHandler?.(e);
 		});
 	} , []);
 

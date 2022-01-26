@@ -1,11 +1,20 @@
-import React, { useContext,  useState } from "react";
+import React, { useContext,  useEffect,  useRef,  useState } from "react";
 import { EditorContext } from "./TextEditorProvider";
 
 import Portal from "./Portal"
 import "./style.scss";
 
 
+const colorPalette = [
+	"000000",
+	"FF9966",
+	"6699FF",
+	"99FF66",
+	"CC0000",
+];
 
+const POPUP_EDITOR_WIDTH = 372;
+const AVAILABLE_GAP = 24;
 
 
 const ColorSuggestItem = ({ onClick , color , dataCommand }) => {
@@ -17,26 +26,12 @@ const ColorSuggestItem = ({ onClick , color , dataCommand }) => {
 const TextEditor = (props) => {
 
 	const { setActiveSessionHandler } = useContext(EditorContext);
-	const [isFocusOnSomeInputs , setIsFocusOnSomeInputs] = useState(false)
-
-
+	const [isFocusOnSomeInputs , setIsFocusOnSomeInputs] = useState(false);
+	const [store, setStore] = useState([]);
 	const [showPopupEditor , setShowPopupEditor] = useState(false);
-
 	const [bound, setBound] = useState([0, 0]);
-	
-	var colorPalette = [
-        "000000",
-        "FF9966",
-        "6699FF",
-        "99FF66",
-        "CC0000",
-    ];
-	
-	
-	const POPUP_EDITOR_WIDTH = 372;
-	const AVAILABLE_GAP = 24;
 
-	
+
 	const actionHandler = (command , targetElement) => {
 		console.log('action');
         if (command == "h1" || command == "h2"|| command == "h3" || command == "h4" || command == "h5" || command == "h6" || command == "p") {
@@ -53,9 +48,7 @@ const TextEditor = (props) => {
 		
 	}
 
-	console.log(isFocusOnSomeInputs , "isFocusOnSomeInputs");
-
-	function positionSetter({ x = 0 , y = 0 }) {
+	function popupPositionSetterHandler({ x = 0 , y = 0 }) {
 		const windowWidth = window.innerWidth;
 		const endPosObj = { x , y };
 
@@ -66,58 +59,47 @@ const TextEditor = (props) => {
 		setBound([ endPosObj.x , endPosObj.y ]);
 	}
 
-	// const contextMouseUpHandler = (e , { canRenderPopup , tempPos }) => {
-		
-	// }
-
-
-	// const contextKeyUpHandler = (e , { canRenderPopup , tempPos }) => {
-		
-	// }
-
-
-	// const contextSelectionHandler = (e , { canRenderPopup , tempPos }) => {
-		
-	// }
-
-
-	const innerActiveHandler = () => {
-		let canRenderPopup = false;
-		let tempPos = null;
-		
-
-		setActiveSessionHandler("TEST_ID_1" , {
+	
+	
+	const contextCallbackClone = useRef();
+    useEffect(() => {
+        contextCallbackClone.current = ({ canRenderPopup , tempPos }) => ({
 			mouseUpHandler(e) {
-				// contextMouseUpHandler(e , { canRenderPopup , tempPos })
-                if(document.getElementById("textEditorPortal")) {
+				console.log(canRenderPopup , 'lorem');
+				if(document.getElementById("textEditorPortal")) {
                     const clickInsidePortal = document.getElementById("textEditorPortal").contains(e.target);
                     if(!clickInsidePortal && canRenderPopup) {
                         setShowPopupEditor(false)
-                    }
+                    }else if(!canRenderPopup && !clickInsidePortal) {
+						setShowPopupEditor(false)
+					}
                 }else {
+					console.log('come for');
                     if(canRenderPopup) setShowPopupEditor(true)
-                    if(tempPos) positionSetter(tempPos)
+                    if(tempPos) popupPositionSetterHandler(tempPos)
                 }
-                console.log('MOUSE UP');
+                // console.log('MOUSE UP');
 			},
 			keyUpHandler(e){
-				// contextKeyUpHandler(e , { tempPos , canRenderPopup })
-                // if(!isFocusOnSomeInputs) {
-                // }
-                if(canRenderPopup) setShowPopupEditor(true)
-                else setShowPopupEditor(false);
-                if(tempPos) positionSetter(tempPos)
+                if(isFocusOnSomeInputs) {
+                    if(canRenderPopup) setShowPopupEditor(true)
+                    else setShowPopupEditor(false);
+                    if(tempPos) popupPositionSetterHandler(tempPos)
+                }
 
-                console.log('KEY UP');
+                // console.log('KEY UP');
 			},
 			selectionHandler(e) {
-				// contextSelectionHandler(e , { tempPos , canRenderPopup })
-                let s = document.getSelection();
+				console.log('selection' , "lorem");
+				let s = document.getSelection();
                 const exactSelectedText = s.toString();
                 if(exactSelectedText.length) canRenderPopup = true;
                 else canRenderPopup = false;
                 let oRange = s.getRangeAt(0);
                 let oRect = oRange.getBoundingClientRect();
+				
+				console.log(document.createRange(s.anchorNode));
+				
 
                 const pos = {
                     x : oRect.x ,
@@ -126,6 +108,14 @@ const TextEditor = (props) => {
                 tempPos = pos;
 			},
 		})
+    })
+
+	const innerActiveHandler = () => {
+		let canRenderPopup = false;
+		let tempPos = null;
+		
+
+		setActiveSessionHandler("TEST_ID_1" , contextCallbackClone.current({ canRenderPopup , tempPos }))
 	}
 
 

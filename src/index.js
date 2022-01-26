@@ -1,13 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import TextEditor from './TextEditor';
-import TextEditorProvider from './TextEditorProvider';
+import SunEditorWrapper from './SunEditorWrapper/SunEditorWrapper.';
 
 ReactDOM.render(
   <React.StrictMode>
-    <TextEditorProvider>
-      <TextEditor />
-    </TextEditorProvider>
+    <SunEditorWrapper />
   </React.StrictMode>,
   document.getElementById('root')
 );
